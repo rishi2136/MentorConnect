@@ -4,9 +4,7 @@ import { io, type Socket } from "socket.io-client";
 import { CallControls } from "../components/call/CallControls";
 import { CallMediaStage } from "../components/call/CallMediaStage";
 import type { CallMode, CallStatus } from "../components/call/types";
-import {
-  formatSessionSchedule,
-} from "../utils/timezone";
+import { formatSessionSchedule } from "../utils/timezone";
 import { isSessionCallWindowOpen } from "../utils/session-call";
 import "./SessionCallPage.css";
 
@@ -54,7 +52,10 @@ function getDeviceErrorMessage(error: unknown) {
         ? error.name
         : "";
   const requestedDevices = "camera and microphone";
-  if (errorName === "NotAllowedError" || errorName === "PermissionDeniedError") {
+  if (
+    errorName === "NotAllowedError" ||
+    errorName === "PermissionDeniedError"
+  ) {
     return `Access to your ${requestedDevices} was denied. Allow it for this site in your browser's address-bar or site settings, then try again.`;
   }
   if (errorName === "NotFoundError" || errorName === "DevicesNotFoundError") {
@@ -65,7 +66,7 @@ function getDeviceErrorMessage(error: unknown) {
   }
   return getErrorMessage(
     error,
-    `Could not access your ${requestedDevices}. Check browser permissions and device settings.`
+    `Could not access your ${requestedDevices}. Check browser permissions and device settings.`,
   );
 }
 
@@ -118,17 +119,15 @@ export const SessionCallPage = () => {
           throw new Error(
             sessionResponse.status === 401 || sessionResponse.status === 403
               ? "Sign in as a session participant to join this call."
-              : "Could not load this session."
+              : "Could not load this session.",
           );
         }
         if (!userResponse.ok) throw new Error("Could not verify your account.");
-        const {
-          session: loadedSession,
-          serverTime,
-        } = (await sessionResponse.json()) as {
-          session: CallSession;
-          serverTime?: string;
-        };
+        const { session: loadedSession, serverTime } =
+          (await sessionResponse.json()) as {
+            session: CallSession;
+            serverTime?: string;
+          };
         const sessionResponseReceivedAt = Date.now();
         const { user: loadedUser } = (await userResponse.json()) as {
           user: CurrentUser;
@@ -136,8 +135,7 @@ export const SessionCallPage = () => {
         const serverTimeMs = serverTime ? Date.parse(serverTime) : Number.NaN;
         if (Number.isFinite(serverTimeMs)) {
           serverClockOffsetRef.current =
-            serverTimeMs -
-            (requestStartedAt + sessionResponseReceivedAt) / 2;
+            serverTimeMs - (requestStartedAt + sessionResponseReceivedAt) / 2;
         }
         if (active) {
           setSession({
@@ -164,7 +162,7 @@ export const SessionCallPage = () => {
   useEffect(() => {
     const timer = window.setInterval(
       () => setNow(Date.now() + serverClockOffsetRef.current),
-      5_000
+      5_000,
     );
     return () => window.clearInterval(timer);
   }, []);
@@ -172,7 +170,7 @@ export const SessionCallPage = () => {
   const userId = user?.id;
   const socket = useMemo<Socket | null>(
     () => (userId ? io({ withCredentials: true, autoConnect: false }) : null),
-    [userId]
+    [userId],
   );
 
   useEffect(() => {
@@ -186,7 +184,9 @@ export const SessionCallPage = () => {
       }
     };
     const onConnectError = (connectionError: Error) =>
-      setError(connectionError.message || "Could not connect to call signaling.");
+      setError(
+        connectionError.message || "Could not connect to call signaling.",
+      );
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
     socket.on("connect_error", onConnectError);
@@ -255,7 +255,9 @@ export const SessionCallPage = () => {
         ) {
           iceRestartAttemptsRef.current += 1;
           setCallStatus("connecting");
-          setError("Network interrupted. Trying to restore the media connection…");
+          setError(
+            "Network interrupted. Trying to restore the media connection…",
+          );
           void (async () => {
             try {
               const offer = await peerConnection.createOffer({
@@ -271,14 +273,14 @@ export const SessionCallPage = () => {
               setError(
                 getErrorMessage(
                   restartError,
-                  "Could not restore the media connection. Leave and rejoin the call."
-                )
+                  "Could not restore the media connection. Leave and rejoin the call.",
+                ),
               );
             }
           })();
         } else {
           setError(
-            "The peer connection failed. Check your network, then leave and rejoin the call."
+            "The peer connection failed. Check your network, then leave and rejoin the call.",
           );
         }
       }
@@ -287,12 +289,15 @@ export const SessionCallPage = () => {
     return peerConnection;
   }, [socket, session, user]);
 
-  const flushPendingCandidates = useCallback(async (peerConnection: RTCPeerConnection) => {
-    const candidates = pendingCandidatesRef.current.splice(0);
-    for (const candidate of candidates) {
-      await peerConnection.addIceCandidate(candidate);
-    }
-  }, []);
+  const flushPendingCandidates = useCallback(
+    async (peerConnection: RTCPeerConnection) => {
+      const candidates = pendingCandidatesRef.current.splice(0);
+      for (const candidate of candidates) {
+        await peerConnection.addIceCandidate(candidate);
+      }
+    },
+    [],
+  );
 
   const startOffer = useCallback(async () => {
     if (offerStartedRef.current || !socket || !session) return;
@@ -308,7 +313,9 @@ export const SessionCallPage = () => {
       });
     } catch (offerError) {
       offerStartedRef.current = false;
-      setError(getErrorMessage(offerError, "Could not start the peer connection."));
+      setError(
+        getErrorMessage(offerError, "Could not start the peer connection."),
+      );
     }
   }, [createPeerConnection, session, socket]);
 
@@ -318,35 +325,39 @@ export const SessionCallPage = () => {
       return;
     }
     setCallStatus("joining");
-    socket.timeout(10_000).emit(
-      "call:join",
-      { sessionId: session._id },
-      (
-        timeoutError: Error | null,
-        response: { mode?: CallMode; peers?: string[]; error?: string }
-      ) => {
-        if (timeoutError) {
-          setCallStatus("idle");
-          setError("The call request timed out. Please try again.");
-          releaseMediaAndPeer();
-          return;
-        }
-        if (response.error || response.mode !== session.mode) {
-          setCallStatus("idle");
-          setError(response.error ?? "This session's call mode does not match.");
-          releaseMediaAndPeer();
-          return;
-        }
-        joinedRef.current = true;
-        setCallStatus("waiting");
-        peerPresentRef.current =
-          peerPresentRef.current || Boolean(response.peers?.length);
-        const studentUserId = session.studentId.userId._id;
-        if (peerPresentRef.current && user.id === studentUserId) {
-          void startOffer();
-        }
-      }
-    );
+    socket
+      .timeout(10_000)
+      .emit(
+        "call:join",
+        { sessionId: session._id },
+        (
+          timeoutError: Error | null,
+          response: { mode?: CallMode; peers?: string[]; error?: string },
+        ) => {
+          if (timeoutError) {
+            setCallStatus("idle");
+            setError("The call request timed out. Please try again.");
+            releaseMediaAndPeer();
+            return;
+          }
+          if (response.error || response.mode !== session.mode) {
+            setCallStatus("idle");
+            setError(
+              response.error ?? "This session's call mode does not match.",
+            );
+            releaseMediaAndPeer();
+            return;
+          }
+          joinedRef.current = true;
+          setCallStatus("waiting");
+          peerPresentRef.current =
+            peerPresentRef.current || Boolean(response.peers?.length);
+          const studentUserId = session.studentId.userId._id;
+          if (peerPresentRef.current && user.id === studentUserId) {
+            void startOffer();
+          }
+        },
+      );
   }, [releaseMediaAndPeer, session, socket, startOffer, user]);
 
   useEffect(() => {
@@ -405,13 +416,16 @@ export const SessionCallPage = () => {
         setCallStatus("idle");
       }
     };
-    const handleCallEnded = (event: { sessionId: string; status: SessionStatus }) => {
+    const handleCallEnded = (event: {
+      sessionId: string;
+      status: SessionStatus;
+    }) => {
       if (event.sessionId !== session._id) return;
       socket.emit("call:leave", { sessionId: session._id });
       joinedRef.current = false;
       releaseMediaAndPeer();
       setSession((current) =>
-        current ? { ...current, status: event.status } : current
+        current ? { ...current, status: event.status } : current,
       );
       setCallStatus("ended");
       setError("This call ended because the session is no longer active.");
@@ -466,17 +480,21 @@ export const SessionCallPage = () => {
 
   useEffect(() => {
     if (!session || session.status !== "accepted") return;
-    const remaining = new Date(session.scheduledAt).getTime() +
+    const remaining =
+      new Date(session.scheduledAt).getTime() +
       session.durationMinutes * 60_000 -
       now;
-    const timeout = window.setTimeout(() => {
-      if (!joinedRef.current) return;
-      if (socket) socket.emit("call:leave", { sessionId: session._id });
-      joinedRef.current = false;
-      releaseMediaAndPeer();
-      setCallStatus("ended");
-      setError("The scheduled session time has ended.");
-    }, Math.max(remaining, 0));
+    const timeout = window.setTimeout(
+      () => {
+        if (!joinedRef.current) return;
+        if (socket) socket.emit("call:leave", { sessionId: session._id });
+        joinedRef.current = false;
+        releaseMediaAndPeer();
+        setCallStatus("ended");
+        setError("The scheduled session time has ended.");
+      },
+      Math.max(remaining, 0),
+    );
     return () => window.clearTimeout(timeout);
   }, [now, releaseMediaAndPeer, session, socket]);
 
@@ -489,7 +507,7 @@ export const SessionCallPage = () => {
       peerConnectionRef.current?.close();
       localStreamRef.current?.getTracks().forEach((track) => track.stop());
     },
-    [sessionId, socket]
+    [sessionId, socket],
   );
 
   const startCall = useCallback(async () => {
@@ -497,7 +515,8 @@ export const SessionCallPage = () => {
       isTestingDevices ||
       mediaRequestInProgressRef.current ||
       localStreamRef.current
-    ) return;
+    )
+      return;
     if (!session) return;
     const synchronizedNow = Date.now() + serverClockOffsetRef.current;
     if (session.status !== "accepted") {
@@ -508,7 +527,7 @@ export const SessionCallPage = () => {
       !isSessionCallWindowOpen(
         session.scheduledAt,
         session.durationMinutes,
-        synchronizedNow
+        synchronizedNow,
       )
     ) {
       setError("This call is outside its scheduled join window.");
@@ -516,11 +535,15 @@ export const SessionCallPage = () => {
       return;
     }
     if (!socket?.connected) {
-      setError("Call signaling is not connected yet. Please wait and try again.");
+      setError(
+        "Call signaling is not connected yet. Please wait and try again.",
+      );
       return;
     }
     if (!navigator.mediaDevices?.getUserMedia) {
-      setError("Camera and microphone access requires a secure browser connection.");
+      setError(
+        "Camera and microphone access requires a secure browser connection.",
+      );
       return;
     }
     setError("");
@@ -538,7 +561,7 @@ export const SessionCallPage = () => {
       });
       const configurationPromise = fetch(
         `/api/audio-meet-sessions/${session._id}/ice-servers`,
-        { credentials: "include" }
+        { credentials: "include" },
       );
       const [stream, configurationResponse] = await Promise.all([
         mediaPromise,
@@ -550,7 +573,7 @@ export const SessionCallPage = () => {
         };
         stream.getTracks().forEach((track) => track.stop());
         throw new Error(
-          result.message || "Could not load secure call connection settings."
+          result.message || "Could not load secure call connection settings.",
         );
       }
       const configuration = (await configurationResponse.json()) as {
@@ -578,17 +601,13 @@ export const SessionCallPage = () => {
       releaseMediaAndPeer();
       setCallStatus("idle");
       setError(getDeviceErrorMessage(mediaError));
-      void mediaPromise?.then((stream) => {
-        stream.getTracks().forEach((track) => track.stop());
-      }).catch(() => undefined);
+      void mediaPromise
+        ?.then((stream) => {
+          stream.getTracks().forEach((track) => track.stop());
+        })
+        .catch(() => undefined);
     }
-  }, [
-    isTestingDevices,
-    joinCallRoom,
-    releaseMediaAndPeer,
-    session,
-    socket,
-  ]);
+  }, [isTestingDevices, joinCallRoom, releaseMediaAndPeer, session, socket]);
 
   useEffect(() => {
     if (
@@ -608,7 +627,7 @@ export const SessionCallPage = () => {
       isSessionCallWindowOpen(
         session.scheduledAt,
         session.durationMinutes,
-        synchronizedNow
+        synchronizedNow,
       )
     ) {
       void startCall();
@@ -622,11 +641,12 @@ export const SessionCallPage = () => {
       callStatus !== "idle" ||
       mediaRequestInProgressRef.current ||
       localStreamRef.current
-    ) return;
+    )
+      return;
     setDeviceTestMessage("");
     if (!navigator.mediaDevices?.getUserMedia) {
       setDeviceTestMessage(
-        "Camera and microphone access requires HTTPS or localhost in a supported browser."
+        "Camera and microphone access requires HTTPS or localhost in a supported browser.",
       );
       return;
     }
@@ -646,11 +666,16 @@ export const SessionCallPage = () => {
         ...stream.getAudioTracks(),
         ...stream.getVideoTracks(),
       ];
-      if (requiredTracks.length === 0 || requiredTracks.some((track) => track.readyState !== "live")) {
-        throw new Error("The browser did not provide all required media devices.");
+      if (
+        requiredTracks.length === 0 ||
+        requiredTracks.some((track) => track.readyState !== "live")
+      ) {
+        throw new Error(
+          "The browser did not provide all required media devices.",
+        );
       }
       setDeviceTestMessage(
-        "Camera and microphone access work. Test media has been stopped; start the call when it is time."
+        "Camera and microphone access work. Test media has been stopped; start the call when it is time.",
       );
     } catch (deviceError) {
       setDeviceTestMessage(getDeviceErrorMessage(deviceError));
@@ -685,7 +710,11 @@ export const SessionCallPage = () => {
   };
 
   if (isLoading) {
-    return <section className="session-call-page"><p>Loading session...</p></section>;
+    return (
+      <section className="session-call-page">
+        <p>Loading session...</p>
+      </section>
+    );
   }
   if (error && !session) {
     return (
@@ -693,7 +722,11 @@ export const SessionCallPage = () => {
         <div className="session-call-card" role="alert">
           <h1>Unable to open call</h1>
           <p>{error}</p>
-          <button className="button outline" type="button" onClick={() => navigate(-1)}>
+          <button
+            className="button outline"
+            type="button"
+            onClick={() => navigate(-1)}
+          >
             Go back
           </button>
         </div>
@@ -708,16 +741,14 @@ export const SessionCallPage = () => {
   const isWithinCallWindow = isSessionCallWindowOpen(
     session.scheduledAt,
     session.durationMinutes,
-    now
+    now,
   );
   const counterpart =
     user.id === session.studentId.userId._id
       ? session.mentorId.userId.fullName
       : session.studentId.userId.fullName;
   const schedule = formatSessionSchedule(session.scheduledAt);
-  const callOpenSchedule = formatSessionSchedule(
-    new Date(callOpensAt)
-  );
+  const callOpenSchedule = formatSessionSchedule(new Date(callOpensAt));
   const canJoin =
     session.status === "accepted" &&
     isWithinCallWindow &&
@@ -760,7 +791,7 @@ export const SessionCallPage = () => {
               : callStatus === "joining"
                 ? "Joining call…"
                 : callStatus === "waiting"
-                ? `Waiting for ${counterpart} to join…`
+                  ? `Waiting for ${counterpart} to join…`
                   : callStatus === "ended"
                     ? "Session ended"
                     : isSocketConnected
@@ -779,13 +810,14 @@ export const SessionCallPage = () => {
             {now < callOpensAt
               ? `Call opens at ${callOpenSchedule}.`
               : `The scheduled call window ended at ${formatSessionSchedule(
-                  new Date(callEndsAt)
+                  new Date(callEndsAt),
                 )}.`}
           </p>
         )}
         {!isSocketConnected && (
           <p className="session-call-notice">
-            Reconnecting to the call service. You can join when the connection is restored.
+            Reconnecting to the call service. You can join when the connection
+            is restored.
           </p>
         )}
         {turnConfigured === false && (
@@ -795,7 +827,11 @@ export const SessionCallPage = () => {
             configure TURN for more reliable connections.
           </p>
         )}
-        {error && <p className="session-call-error" role="alert">{error}</p>}
+        {error && (
+          <p className="session-call-error" role="alert">
+            {error}
+          </p>
+        )}
 
         {session.status === "accepted" && (
           <div className="session-call-device-test">
