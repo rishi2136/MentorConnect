@@ -154,9 +154,7 @@ the WebRTC peer connection, not Socket.IO.
 - The scheduled call experience was made video-first with a five-minute-early
   join window, server-side authorization, TURN configuration support, and a
   local two-browser-profile test helper.
-- Git was initialized on `main`, and `origin` points to
-  `https://github.com/rishi2136/MentorConnect.git`. The initial local commit was
-  created, but the prior push attempt failed with GitHub's
-  `Invalid username or token` response. Authenticate through Git Credential
-  Manager or GitHub Desktop before retrying; do not put a token in this file or
+- Git is initialized on `main`, with `origin` set to
+  `https://github.com/rishi2136/MentorConnect.git`. Use the configured Git
+  credential manager for future pushes; never put access tokens in this file or
   chat.
