@@ -1,0 +1,29 @@
+# Dependencies and generated output
+node_modules/
+dist/
+coverage/
+
+# Generated TypeScript output alongside source files
+/server/scripts/webrtc-test.js
+/server/scripts/webrtc-test.js.map
+/server/scripts/webrtc-test.d.ts
+/server/scripts/webrtc-test.d.ts.map
+/server/tests/timezone.test.js
+/server/tests/timezone.test.js.map
+/server/tests/timezone.test.d.ts
+/server/tests/timezone.test.d.ts.map
+/server/tests/mentor-session-count.test.js
+/server/tests/mentor-session-count.test.js.map
+/server/tests/mentor-session-count.test.d.ts
+/server/tests/mentor-session-count.test.d.ts.map
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*

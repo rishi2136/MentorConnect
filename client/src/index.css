@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+:root {
+	font-family: Georgia, 'Times New Roman', serif;
+	color: #25302b;
+	background: #f6f5f0;
+	font-synthesis: none;
+	text-rendering: optimizeLegibility;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; }
+button, input, select { font: inherit; }
+button, a { -webkit-tap-highlight-color: transparent; }
+button { cursor: pointer; }
+
+:root[data-theme='dark'] { color: #f0eee7; background: #18211e; }

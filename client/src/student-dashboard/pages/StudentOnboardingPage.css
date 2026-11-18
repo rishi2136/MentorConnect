@@ -1,0 +1,168 @@
+.student-onboarding {
+  display: grid;
+  min-height: calc(100vh - 82px);
+  place-items: center;
+  padding: 48px 20px;
+  background:
+    radial-gradient(circle at 8% 8%, color-mix(in srgb, var(--lime) 20%, transparent), transparent 28rem),
+    var(--paper);
+}
+
+.student-onboarding-card {
+  width: min(100%, 900px);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: 0 18px 55px rgba(37, 48, 43, 0.08);
+}
+
+.student-onboarding-intro {
+  padding: 40px 48px 30px;
+  border-bottom: 1px solid var(--line);
+}
+
+.student-onboarding-intro .eyebrow {
+  margin-bottom: 12px;
+}
+
+.student-onboarding-intro h1 {
+  max-width: 620px;
+  font: 500 36px/1.15 "Playfair Display", Georgia, serif;
+}
+
+.student-onboarding-intro > p {
+  max-width: 620px;
+  margin-top: 12px;
+  color: var(--muted);
+  font: 14px/1.6 "DM Sans", sans-serif;
+}
+
+.student-onboarding-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.student-onboarding-progress > span {
+  width: 42px;
+  height: 5px;
+  border-radius: 5px;
+  background: var(--green);
+}
+
+.student-onboarding-progress small {
+  color: var(--muted);
+  font: 600 11px "DM Sans", sans-serif;
+}
+
+.student-onboarding-form {
+  padding: 30px 48px 38px;
+}
+
+.student-onboarding-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.student-onboarding-fields label {
+  display: grid;
+  gap: 8px;
+  color: var(--ink);
+  font: 600 12px "DM Sans", sans-serif;
+}
+
+.student-onboarding-fields input,
+.student-onboarding-fields textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 12px 13px;
+  color: var(--ink);
+  background: var(--surface);
+  font: 13px "DM Sans", sans-serif;
+}
+
+.student-onboarding-fields input:focus,
+.student-onboarding-fields textarea:focus {
+  outline: 2px solid color-mix(in srgb, var(--green) 35%, transparent);
+  border-color: var(--green);
+}
+
+.student-onboarding-fields textarea {
+  resize: vertical;
+}
+
+.student-onboarding-fields label > span {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.student-onboarding-year-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.student-onboarding-full-width {
+  grid-column: 1 / -1;
+}
+
+.student-onboarding-error {
+  margin-top: 18px;
+  color: #b42318;
+  font: 13px/1.5 "DM Sans", sans-serif;
+}
+
+.student-onboarding-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 28px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+}
+
+.student-onboarding-footer p {
+  max-width: 390px;
+  color: var(--muted);
+  font: 11px/1.5 "DM Sans", sans-serif;
+}
+
+.student-onboarding-footer .button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+@media (max-width: 640px) {
+  .student-onboarding {
+    min-height: calc(100vh - 60px);
+    padding: 24px 14px;
+  }
+
+  .student-onboarding-intro,
+  .student-onboarding-form {
+    padding: 26px 22px;
+  }
+
+  .student-onboarding-intro h1 {
+    font-size: 30px;
+  }
+
+  .student-onboarding-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .student-onboarding-full-width {
+    grid-column: auto;
+  }
+
+  .student-onboarding-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

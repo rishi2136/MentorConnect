@@ -1,0 +1,186 @@
+.session-call-page {
+  width: min(1120px, calc(100% - 40px));
+  margin: 56px auto;
+  color: var(--ink);
+}
+
+.session-call-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.session-call-heading h1 {
+  margin: 8px 0;
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+}
+
+.session-call-heading p,
+.session-call-card p {
+  color: var(--muted);
+}
+
+.session-call-card {
+  display: flex;
+  min-height: 480px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: clamp(20px, 5vw, 48px);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+  text-align: center;
+}
+
+.session-call-video-grid {
+  position: relative;
+  width: 100%;
+  min-height: 300px;
+}
+
+.session-call-video {
+  position: absolute;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #101714;
+}
+
+.session-call-video.remote {
+  inset: 0;
+}
+
+.session-call-video-grid > audio {
+  display: none;
+}
+
+.session-call-video-grid > .button {
+  position: absolute;
+  z-index: 2;
+  top: 16px;
+  left: 16px;
+}
+
+.session-call-video.local {
+  right: 16px;
+  bottom: 16px;
+  width: min(28%, 240px);
+  aspect-ratio: 4 / 3;
+  border: 2px solid var(--surface);
+}
+
+.session-call-video video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.session-call-video.remote > span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  color: #fff;
+  transform: translate(-50%, -50%);
+}
+
+.session-call-video small {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  color: #fff;
+  text-shadow: 0 1px 3px #000;
+}
+
+.session-call-audio-avatar {
+  display: grid;
+  width: 120px;
+  height: 120px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--green);
+  color: var(--surface);
+  font-size: 3rem;
+}
+
+.session-call-status {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.session-call-status > span {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #a4aca7;
+}
+
+.session-call-status > span.connected {
+  background: #319568;
+}
+
+.session-call-status > span.disconnected {
+  background: #c07845;
+}
+
+.session-call-notice,
+.session-call-error,
+.session-call-privacy {
+  max-width: 640px;
+  line-height: 1.5;
+}
+
+.session-call-device-test {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+
+.session-call-device-test-success {
+  max-width: 640px;
+  margin: 0;
+  color: #26704e !important;
+  line-height: 1.5;
+}
+
+.session-call-error {
+  color: #b42318 !important;
+}
+
+.session-call-controls {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.session-call-end {
+  background: #b42318;
+}
+
+.session-call-privacy {
+  font-size: 0.82rem;
+}
+
+@media (max-width: 640px) {
+  .session-call-page {
+    width: min(100% - 24px, 1120px);
+    margin: 28px auto;
+  }
+
+  .session-call-heading {
+    flex-direction: column;
+  }
+
+  .session-call-card {
+    min-height: 400px;
+  }
+
+  .session-call-video-grid {
+    min-height: 240px;
+  }
+}

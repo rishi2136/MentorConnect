@@ -1,0 +1,434 @@
+.profile-hero {
+  position: relative;
+  max-width: 1180px;
+  min-height: 500px;
+  margin: auto;
+  padding: 42px 32px 72px;
+  display: grid;
+  grid-template-columns: 1fr 0.75fr;
+  align-items: center;
+  gap: 40px;
+  overflow: hidden;
+}
+
+.profile-back {
+  position: absolute;
+  top: 26px;
+  left: 32px;
+  border: 0;
+  padding: 6px 0;
+  color: var(--muted);
+  background: none;
+  font: 600 12px "DM Sans", sans-serif;
+}
+
+.profile-back:hover {
+  color: var(--green);
+}
+
+.profile-hero-copy {
+  padding-top: 38px;
+}
+
+.profile-hero-copy h1 {
+  max-width: 530px;
+  margin: 0 0 20px;
+  font: 500 61px/1.04 "Playfair Display", Georgia, serif;
+}
+
+.profile-hero-copy p {
+  max-width: 455px;
+  color: var(--muted);
+  font: 15px/1.65 "DM Sans", sans-serif;
+}
+
+.profile-rating {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 25px 0 29px;
+  color: var(--muted);
+  font: 11px "DM Sans", sans-serif;
+}
+
+.profile-rating strong {
+  color: #b68735;
+}
+
+.mentor-booking-availability {
+  display: grid;
+  gap: 7px;
+  margin: -12px 0 20px;
+  color: var(--muted);
+  font: 12px/1.5 "DM Sans", sans-serif;
+}
+
+.mentor-booking-availability strong {
+  color: var(--ink);
+}
+
+.mentor-booking-availability ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.profile-hero-copy .mentor-booking-availability > span {
+  font-size: 11px;
+}
+
+.booking-timezone-help {
+  margin: -10px 0 16px;
+  color: var(--muted);
+  font: 11px/1.5 "DM Sans", sans-serif;
+}
+
+.session-booking-modal {
+  max-height: calc(100dvh - 32px);
+  margin: auto 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: 0;
+}
+
+.session-booking-backdrop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.session-booking-form {
+  display: grid;
+}
+
+.session-booking-form textarea {
+  display: block;
+  width: 100%;
+  margin-top: 7px;
+  padding: 12px 13px;
+  border: 1px solid var(--line);
+  outline-color: var(--green);
+  color: var(--ink);
+  background: transparent;
+  font: 13px "DM Sans", sans-serif;
+  resize: vertical;
+}
+
+.session-booking-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin: 0 -42px;
+  padding: 14px 42px max(16px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.session-booking-actions .button {
+  min-height: 44px;
+}
+
+.profile-hero-copy .button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.profile-portrait {
+  position: relative;
+  justify-self: end;
+  width: min(100%, 380px);
+}
+
+.profile-portrait img {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 78%;
+  aspect-ratio: 1 / 1.12;
+  margin-left: auto;
+  object-fit: cover;
+  object-position: top;
+  filter: saturate(0.75);
+}
+
+.portrait-accent {
+  position: absolute;
+  top: 22px;
+  right: 0;
+  width: 83%;
+  height: 90%;
+  border: 1px solid var(--green);
+  background: var(--lime);
+  transform: rotate(5deg);
+}
+
+.profile-content {
+  max-width: 1116px;
+  margin: auto;
+  padding: 72px 32px 86px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 90px;
+  border-top: 1px solid var(--line);
+}
+
+.profile-about h2,
+.courses-heading h2 {
+  margin: 0 0 19px;
+  font: 500 37px/1.12 "Playfair Display", Georgia, serif;
+}
+
+.profile-about > p {
+  max-width: 460px;
+  color: var(--muted);
+  font: 13px/1.7 "DM Sans", sans-serif;
+}
+
+.profile-stats {
+  display: flex;
+  gap: 36px;
+  margin: 35px 0 28px;
+}
+
+.profile-stats div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.profile-stats strong {
+  font: 500 25px "Playfair Display", Georgia, serif;
+}
+
+.profile-stats span {
+  color: var(--muted);
+  font: 10px "DM Sans", sans-serif;
+}
+
+.expertise-panel {
+  padding-top: 28px;
+}
+
+.expertise-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.expertise-item {
+  min-height: 105px;
+  padding: 17px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  background: var(--surface);
+  font: 11px/1.3 "DM Sans", sans-serif;
+}
+
+.expertise-icon {
+  color: var(--green);
+  font-size: 23px;
+}
+
+.profile-contact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 17px;
+  margin-top: 25px;
+  color: var(--muted);
+  font: 10px "DM Sans", sans-serif;
+}
+
+.courses-section {
+  padding: 76px 32px 105px;
+  background: color-mix(in srgb, var(--surface) 65%, var(--paper));
+}
+
+.courses-heading,
+.course-grid {
+  max-width: 1116px;
+  margin: auto;
+}
+
+.courses-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  margin-bottom: 30px;
+}
+
+.courses-heading p {
+  margin: 0 0 5px;
+  color: var(--muted);
+  font: 12px/1.55 "DM Sans", sans-serif;
+}
+
+.course-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.course-card {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.course-card > img {
+  display: block;
+  width: 100%;
+  height: 130px;
+  object-fit: cover;
+  filter: saturate(0.75);
+}
+
+.course-card-body {
+  padding: 13px;
+}
+
+.course-category {
+  color: var(--green);
+  font: 600 9px "DM Sans", sans-serif;
+}
+
+.course-card h3 {
+  min-height: 40px;
+  margin: 10px 0 11px;
+  font: 600 12px/1.35 "DM Sans", sans-serif;
+}
+
+.course-card-body > p {
+  margin-bottom: 17px;
+  color: var(--muted);
+  font: 10px "DM Sans", sans-serif;
+}
+
+.course-card-body > p span {
+  margin-left: 12px;
+}
+
+.course-card-body > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--line);
+  padding-top: 11px;
+}
+
+.course-card-body strong {
+  font: 600 15px "DM Sans", sans-serif;
+}
+
+.course-card .text-button {
+  color: var(--green);
+  font-size: 10px;
+}
+
+@media (max-width: 800px) {
+  .profile-hero {
+    min-height: 0;
+    padding-top: 80px;
+    grid-template-columns: 1fr;
+  }
+
+  .profile-portrait {
+    justify-self: center;
+    order: -1;
+    max-width: 320px;
+  }
+
+  .profile-hero-copy {
+    padding-top: 0;
+  }
+
+  .profile-content {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .expertise-panel {
+    padding-top: 0;
+  }
+
+  .course-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 520px) {
+  .profile-hero {
+    padding: 72px 20px 55px;
+  }
+
+  .profile-back {
+    left: 20px;
+  }
+
+  .profile-hero-copy h1 {
+    font-size: 48px;
+  }
+
+  .session-booking-modal {
+    width: 100%;
+    max-height: calc(100dvh - 16px);
+    padding: 35px 24px 0;
+  }
+
+  .session-booking-actions {
+    margin: 0 -24px;
+    padding: 12px 24px max(12px, env(safe-area-inset-bottom));
+  }
+
+  .session-booking-actions .button {
+    flex: 1;
+    padding-inline: 10px;
+  }
+
+  .profile-rating {
+    flex-wrap: wrap;
+  }
+
+  .profile-content {
+    padding: 60px 20px;
+  }
+
+  .profile-stats {
+    gap: 20px;
+  }
+
+  .expertise-grid {
+    gap: 8px;
+  }
+
+  .expertise-item {
+    min-height: 100px;
+    padding: 12px;
+  }
+
+  .courses-section {
+    padding: 60px 20px 75px;
+  }
+
+  .courses-heading {
+    display: block;
+  }
+
+  .courses-heading p {
+    margin-bottom: 25px;
+  }
+
+  .course-grid {
+    grid-template-columns: 1fr;
+  }
+}
