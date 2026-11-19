@@ -10,6 +10,7 @@ import {
 } from "../../utils/timezone";
 import { isSessionCallWindowOpen } from "../../utils/session-call";
 import "../MentorDashboard.css";
+import API_URL, { apiUrl } from "../../config/api";
 
 type ApiSession = {
   _id: string;
@@ -69,7 +70,9 @@ export const SessionsPanel = () => {
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState("date");
   const [now, setNow] = useState(0);
-  const [selectedSession, setSelectedSession] = useState<ApiSession | null>(null);
+  const [selectedSession, setSelectedSession] = useState<ApiSession | null>(
+    null,
+  );
   const [editingSession, setEditingSession] = useState<ApiSession | null>(null);
   const [editForm, setEditForm] = useState<SessionForm | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -88,8 +91,8 @@ export const SessionsPanel = () => {
     const fetchSessionsAndUser = async () => {
       try {
         const [userRes, sessionsRes] = await Promise.all([
-          fetch("/api/users/me", { credentials: "include" }),
-          fetch("/api/audio-meet-sessions/me", { credentials: "include" }),
+          fetch(apiUrl("/api/users/me"), { credentials: "include" }),
+          fetch(apiUrl("/api/audio-meet-sessions/me"), { credentials: "include" }),
         ]);
 
         if (!userRes.ok) throw new Error("Could not load your account.");
@@ -107,7 +110,9 @@ export const SessionsPanel = () => {
       } catch (error) {
         if (isActive) {
           setLoadError(
-            error instanceof Error ? error.message : "Could not load your sessions."
+            error instanceof Error
+              ? error.message
+              : "Could not load your sessions.",
           );
         }
       } finally {
@@ -126,10 +131,13 @@ export const SessionsPanel = () => {
    * Refetches sessions following a user-triggered state change
    */
   const refreshSessions = async () => {
-    const response = await fetch("/api/audio-meet-sessions/me", {
+    const response = await fetch(apiUrl("/api/audio-meet-sessions/me"), {
       credentials: "include",
     });
-    if (!response.ok) throw new Error("Your action succeeded, but sessions could not be refreshed.");
+    if (!response.ok)
+      throw new Error(
+        "Your action succeeded, but sessions could not be refreshed.",
+      );
     const { sessions } = (await response.json()) as {
       sessions: ApiSession[];
     };
@@ -137,25 +145,25 @@ export const SessionsPanel = () => {
   };
 
   useEffect(() => {
-    const socket = io({ withCredentials: true });
+    const socket = io(API_URL || undefined, { withCredentials: true });
     const refresh = () => {
       void refreshSessions().catch((error: unknown) => {
         setLoadError(
           error instanceof Error
             ? error.message
-            : "Could not refresh your sessions."
+            : "Could not refresh your sessions.",
         );
       });
     };
     const removeDeleted = (event: { sessionId: string }) => {
       setApiSessions((sessions) =>
-        sessions.filter((session) => session._id !== event.sessionId)
+        sessions.filter((session) => session._id !== event.sessionId),
       );
       setSelectedSession((session) =>
-        session?._id === event.sessionId ? null : session
+        session?._id === event.sessionId ? null : session,
       );
       setEditingSession((session) =>
-        session?._id === event.sessionId ? null : session
+        session?._id === event.sessionId ? null : session,
       );
       setEditForm(null);
     };
@@ -171,16 +179,19 @@ export const SessionsPanel = () => {
    */
   const handleStatusChange = async (
     sessionId: string,
-    newStatus: "accepted" | "rejected" | "cancelled" | "completed"
+    newStatus: "accepted" | "rejected" | "cancelled" | "completed",
   ) => {
     setActionError("");
     try {
-      const response = await fetch(`/api/audio-meet-sessions/${sessionId}/status`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ status: newStatus }),
-      });
+      const response = await fetch(
+        apiUrl(`/api/audio-meet-sessions/${sessionId}/status`),
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ status: newStatus }),
+        },
+      );
 
       if (!response.ok) {
         const errData = (await response.json()) as { message?: string };
@@ -201,7 +212,9 @@ export const SessionsPanel = () => {
       }
       await refreshSessions();
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : "Error updating status");
+      setActionError(
+        err instanceof Error ? err.message : "Error updating status",
+      );
     }
   };
 
@@ -213,7 +226,7 @@ export const SessionsPanel = () => {
       notes: session.notes ?? "",
       scheduledAt: formatDateTimeInputInZone(
         new Date(session.scheduledAt),
-        inputTimezone
+        inputTimezone,
       ),
       durationMinutes: session.durationMinutes,
     });
@@ -227,10 +240,10 @@ export const SessionsPanel = () => {
     try {
       const scheduledAt = dateTimeInputToInstant(
         editForm.scheduledAt,
-        inputTimezone
+        inputTimezone,
       );
       const response = await fetch(
-        `/api/audio-meet-sessions/${editingSession._id}`,
+        apiUrl(`/api/audio-meet-sessions/${editingSession._id}`),
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -239,7 +252,7 @@ export const SessionsPanel = () => {
             ...editForm,
             scheduledAt: scheduledAt.toISOString(),
           }),
-        }
+        },
       );
       if (!response.ok) {
         const result = (await response.json()) as { message?: string };
@@ -251,7 +264,9 @@ export const SessionsPanel = () => {
       setEditForm(null);
     } catch (error) {
       setActionError(
-        error instanceof Error ? error.message : "Could not update this session."
+        error instanceof Error
+          ? error.message
+          : "Could not update this session.",
       );
     } finally {
       setIsSaving(false);
@@ -260,15 +275,15 @@ export const SessionsPanel = () => {
 
   const handleDelete = async (session: ApiSession) => {
     const confirmed = window.confirm(
-      "Delete this completed or past session? Its conversation history will also be permanently deleted."
+      "Delete this completed or past session? Its conversation history will also be permanently deleted.",
     );
     if (!confirmed) return;
     setActionError("");
     try {
-      const response = await fetch(
-        `/api/audio-meet-sessions/${session._id}`,
-        { method: "DELETE", credentials: "include" }
-      );
+      const response = await fetch(apiUrl(`/api/audio-meet-sessions/${session._id}`), {
+        method: "DELETE",
+        credentials: "include",
+      });
       if (!response.ok) {
         const result = (await response.json()) as { message?: string };
         throw new Error(result.message || "Could not delete this session.");
@@ -286,12 +301,14 @@ export const SessionsPanel = () => {
         });
       }
       setApiSessions((sessions) =>
-        sessions.filter((item) => item._id !== session._id)
+        sessions.filter((item) => item._id !== session._id),
       );
       setSelectedSession(null);
     } catch (error) {
       setActionError(
-        error instanceof Error ? error.message : "Could not delete this session."
+        error instanceof Error
+          ? error.message
+          : "Could not delete this session.",
       );
     }
   };
@@ -315,18 +332,24 @@ export const SessionsPanel = () => {
         const counterpartName = isMentor
           ? s.studentId?.userId?.fullName || "Student"
           : s.mentorId?.userId?.fullName || "Mentor";
-        const matchesQuery =
-          `${counterpartName} ${s.topic}`
-            .toLowerCase()
-            .includes(query.toLowerCase());
+        const matchesQuery = `${counterpartName} ${s.topic}`
+          .toLowerCase()
+          .includes(query.toLowerCase());
         return matchesFilter && matchesQuery;
       })
       .sort((a, b) => {
         if (sortBy === "date") {
-          return new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime();
+          return (
+            new Date(b.scheduledAt).getTime() -
+            new Date(a.scheduledAt).getTime()
+          );
         }
-        const nameA = isMentor ? a.studentId?.userId?.fullName : a.mentorId?.userId?.fullName;
-        const nameB = isMentor ? b.studentId?.userId?.fullName : b.mentorId?.userId?.fullName;
+        const nameA = isMentor
+          ? a.studentId?.userId?.fullName
+          : a.mentorId?.userId?.fullName;
+        const nameB = isMentor
+          ? b.studentId?.userId?.fullName
+          : b.mentorId?.userId?.fullName;
         return (nameA || "").localeCompare(nameB || "");
       });
   }, [apiSessions, filter, isMentor, query, sortBy]);
@@ -339,7 +362,9 @@ export const SessionsPanel = () => {
           <h2>
             {isMentor ? "Student" : "Mentorship"} <em>sessions.</em>
           </h2>
-          <p>Keep every conversation, commitment, and follow-up in one place.</p>
+          <p>
+            Keep every conversation, commitment, and follow-up in one place.
+          </p>
           <p>All session times use UTC.</p>
         </div>
         {!isMentor && (
@@ -406,10 +431,8 @@ export const SessionsPanel = () => {
 
       <div className="sessions-summary">
         <span>
-          <strong>
-            {filteredApiSessions.length}
-          </strong>{" "}
-          sessions {isLoading && "(loading...)"}
+          <strong>{filteredApiSessions.length}</strong> sessions{" "}
+          {isLoading && "(loading...)"}
         </span>
       </div>
 
@@ -439,9 +462,14 @@ export const SessionsPanel = () => {
       ) : (
         <div className="sessions-list">
           {filteredApiSessions.length === 0 ? (
-            <div className="empty-state" style={{ padding: "32px 0", textAlign: "center" }}>
+            <div
+              className="empty-state"
+              style={{ padding: "32px 0", textAlign: "center" }}
+            >
               <p style={{ color: "var(--muted)" }}>
-                {isLoading ? "Loading sessions..." : "No sessions match the current filter."}
+                {isLoading
+                  ? "Loading sessions..."
+                  : "No sessions match the current filter."}
               </p>
             </div>
           ) : (
@@ -470,7 +498,9 @@ export const SessionsPanel = () => {
 
               return (
                 <article className="session-card" key={session._id}>
-                  <span className={`session-avatar ${tones[index % tones.length]}`}>
+                  <span
+                    className={`session-avatar ${tones[index % tones.length]}`}
+                  >
                     {initials}
                   </span>
                   <div className="session-card-info">
@@ -479,7 +509,9 @@ export const SessionsPanel = () => {
                       <span className={`session-badge ${session.status}`}>
                         {session.status}
                       </span>
-                      <span className={`session-badge ${isOngoing ? "live" : timeStatus.toLowerCase()}`}>
+                      <span
+                        className={`session-badge ${isOngoing ? "live" : timeStatus.toLowerCase()}`}
+                      >
                         {timeStatus}
                       </span>
                     </div>
@@ -487,15 +519,24 @@ export const SessionsPanel = () => {
                       with <strong>{counterpart}</strong>
                     </p>
                     <div className="session-details">
-                      <span>
-                        ◷ {schedule}
-                      </span>
+                      <span>◷ {schedule}</span>
                       <span>◌ {session.durationMinutes} min</span>
                       <span>Video call</span>
-                      <span>▣ {session.isFreeSession ? "Free" : `$${session.price ?? 0}`}</span>
+                      <span>
+                        ▣{" "}
+                        {session.isFreeSession
+                          ? "Free"
+                          : `$${session.price ?? 0}`}
+                      </span>
                     </div>
                     {session.notes && (
-                      <p style={{ fontSize: 12, color: "var(--muted)", margin: "4px 0 0" }}>
+                      <p
+                        style={{
+                          fontSize: 12,
+                          color: "var(--muted)",
+                          margin: "4px 0 0",
+                        }}
+                      >
                         Note: {session.notes}
                       </p>
                     )}
@@ -515,14 +556,18 @@ export const SessionsPanel = () => {
                         <button
                           className="button small"
                           type="button"
-                          onClick={() => handleStatusChange(session._id, "accepted")}
+                          onClick={() =>
+                            handleStatusChange(session._id, "accepted")
+                          }
                         >
                           Accept
                         </button>
                         <button
                           className="button small outline"
                           type="button"
-                          onClick={() => handleStatusChange(session._id, "rejected")}
+                          onClick={() =>
+                            handleStatusChange(session._id, "rejected")
+                          }
                         >
                           Reject
                         </button>
@@ -533,22 +578,28 @@ export const SessionsPanel = () => {
                       <button
                         className="button small"
                         type="button"
-                        onClick={() => handleStatusChange(session._id, "completed")}
+                        onClick={() =>
+                          handleStatusChange(session._id, "completed")
+                        }
                       >
                         Complete
                       </button>
                     )}
 
                     {/* Student action controls */}
-                    {!isMentor && (session.status === "requested" || session.status === "accepted") && (
-                      <button
-                        className="button small outline"
-                        type="button"
-                        onClick={() => handleStatusChange(session._id, "cancelled")}
-                      >
-                        Cancel
-                      </button>
-                    )}
+                    {!isMentor &&
+                      (session.status === "requested" ||
+                        session.status === "accepted") && (
+                        <button
+                          className="button small outline"
+                          type="button"
+                          onClick={() =>
+                            handleStatusChange(session._id, "cancelled")
+                          }
+                        >
+                          Cancel
+                        </button>
+                      )}
 
                     {isStudent &&
                       session.status === "requested" &&
@@ -574,11 +625,14 @@ export const SessionsPanel = () => {
                     )}
 
                     {/* Chat button for accepted / active sessions */}
-                    {(session.status === "accepted" || session.status === "completed") && (
+                    {(session.status === "accepted" ||
+                      session.status === "completed") && (
                       <button
                         className="button session-action live"
                         type="button"
-                        onClick={() => navigate(`/chat?sessionId=${session._id}`)}
+                        onClick={() =>
+                          navigate(`/chat?sessionId=${session._id}`)
+                        }
                       >
                         Chat <span aria-hidden="true">↗</span>
                       </button>
@@ -593,18 +647,18 @@ export const SessionsPanel = () => {
                               isSessionCallWindowOpen(
                                 session.scheduledAt,
                                 session.durationMinutes,
-                                now
+                                now,
                               )
                                 ? "?join=1"
                                 : ""
-                            }`
+                            }`,
                           )
                         }
                       >
                         {isSessionCallWindowOpen(
                           session.scheduledAt,
                           session.durationMinutes,
-                          now
+                          now,
                         )
                           ? "Start video call"
                           : "Open video session"}{" "}
@@ -753,14 +807,25 @@ export const SessionsPanel = () => {
                     : selectedSession.mentorId?.userId?.fullName || "Mentor"}
                 </p>
                 <dl className="session-detail-list">
-                  <div><dt>Status</dt><dd>{selectedSession.status}</dd></div>
-                  <div><dt>Call</dt><dd>Video · {selectedSession.durationMinutes} minutes</dd></div>
+                  <div>
+                    <dt>Status</dt>
+                    <dd>{selectedSession.status}</dd>
+                  </div>
+                  <div>
+                    <dt>Call</dt>
+                    <dd>Video · {selectedSession.durationMinutes} minutes</dd>
+                  </div>
                   <div>
                     <dt>Session time (UTC)</dt>
-                    <dd>{formatSessionSchedule(selectedSession.scheduledAt)}</dd>
+                    <dd>
+                      {formatSessionSchedule(selectedSession.scheduledAt)}
+                    </dd>
                   </div>
                   {selectedSession.notes && (
-                    <div><dt>Notes</dt><dd>{selectedSession.notes}</dd></div>
+                    <div>
+                      <dt>Notes</dt>
+                      <dd>{selectedSession.notes}</dd>
+                    </div>
                   )}
                 </dl>
                 <div className="session-dialog-actions">
@@ -777,7 +842,8 @@ export const SessionsPanel = () => {
                     )}
                   {(selectedSession.status === "completed" ||
                     new Date(selectedSession.scheduledAt).getTime() +
-                      selectedSession.durationMinutes * 60_000 <= now) && (
+                      selectedSession.durationMinutes * 60_000 <=
+                      now) && (
                     <button
                       className="button outline small"
                       type="button"

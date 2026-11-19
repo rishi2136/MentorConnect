@@ -7,6 +7,7 @@ import type { CallMode, CallStatus } from "../components/call/types";
 import { formatSessionSchedule } from "../utils/timezone";
 import { isSessionCallWindowOpen } from "../utils/session-call";
 import "./SessionCallPage.css";
+import API_URL, { apiUrl } from "../config/api";
 
 type SessionStatus =
   | "requested"
@@ -110,10 +111,10 @@ export const SessionCallPage = () => {
       try {
         const requestStartedAt = Date.now();
         const [sessionResponse, userResponse] = await Promise.all([
-          fetch(`/api/audio-meet-sessions/${sessionId}`, {
+          fetch(apiUrl(`/api/audio-meet-sessions/${sessionId}`), {
             credentials: "include",
           }),
-          fetch("/api/users/me", { credentials: "include" }),
+          fetch(apiUrl("/api/users/me"), { credentials: "include" }),
         ]);
         if (!sessionResponse.ok) {
           throw new Error(
@@ -169,7 +170,13 @@ export const SessionCallPage = () => {
 
   const userId = user?.id;
   const socket = useMemo<Socket | null>(
-    () => (userId ? io({ withCredentials: true, autoConnect: false }) : null),
+    () =>
+      userId
+        ? io(API_URL || undefined, {
+            withCredentials: true,
+            autoConnect: false,
+          })
+        : null,
     [userId],
   );
 
@@ -560,7 +567,7 @@ export const SessionCallPage = () => {
         video: true,
       });
       const configurationPromise = fetch(
-        `/api/audio-meet-sessions/${session._id}/ice-servers`,
+        apiUrl(`/api/audio-meet-sessions/${session._id}/ice-servers`),
         { credentials: "include" },
       );
       const [stream, configurationResponse] = await Promise.all([

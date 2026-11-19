@@ -4,6 +4,7 @@ import { io, type Socket } from "socket.io-client";
 import { ChatSidebar } from "./ChatSidebar";
 import { ChatWindow } from "./ChatWindow";
 import type { ChatContact } from "./types";
+import API_URL, { apiUrl } from "../../config/api";
 
 type ChatWorkspaceProps = { compact?: boolean };
 type UserSummary = {
@@ -28,7 +29,10 @@ const getInitials = (name: string) =>
     .join("")
     .toUpperCase();
 
-function toContacts(sessions: SessionSummary[], user: UserSummary): ChatContact[] {
+function toContacts(
+  sessions: SessionSummary[],
+  user: UserSummary,
+): ChatContact[] {
   return sessions.map((session, index) => {
     const studentName = session.studentId.userId.fullName;
     const mentorName = session.mentorId.userId.fullName;
@@ -67,7 +71,7 @@ export const ChatWorkspace = ({ compact = false }: ChatWorkspaceProps) => {
   }, [searchParams]);
 
   const refreshContacts = useCallback(async (currentUser: UserSummary) => {
-    const response = await fetch("/api/audio-meet-sessions/me", {
+    const response = await fetch(apiUrl("/api/audio-meet-sessions/me"), {
       credentials: "include",
     });
     if (!response.ok) throw new Error("Could not load your sessions.");
@@ -79,7 +83,7 @@ export const ChatWorkspace = ({ compact = false }: ChatWorkspaceProps) => {
     setSelectedSessionId((currentId) =>
       mappedContacts.some((contact) => contact.sessionId === currentId)
         ? currentId
-        : mappedContacts[0]?.sessionId
+        : mappedContacts[0]?.sessionId,
     );
   }, []);
 
@@ -89,14 +93,14 @@ export const ChatWorkspace = ({ compact = false }: ChatWorkspaceProps) => {
       setIsLoading(true);
       setError("");
       try {
-        const userResponse = await fetch("/api/users/me", {
+        const userResponse = await fetch(apiUrl("/api/users/me"), {
           credentials: "include",
         });
         if (!userResponse.ok) {
           throw new Error(
             userResponse.status === 401
               ? "Sign in to view your conversations."
-              : "Could not load your account."
+              : "Could not load your account.",
           );
         }
         const { user: currentUser } = (await userResponse.json()) as {
@@ -110,7 +114,7 @@ export const ChatWorkspace = ({ compact = false }: ChatWorkspaceProps) => {
           setError(
             loadError instanceof Error
               ? loadError.message
-              : "Could not load conversations."
+              : "Could not load conversations.",
           );
         }
       } finally {
@@ -125,7 +129,7 @@ export const ChatWorkspace = ({ compact = false }: ChatWorkspaceProps) => {
 
   useEffect(() => {
     if (!user) return;
-    const connection = io({ withCredentials: true });
+    const connection = io(API_URL || undefined, { withCredentials: true });
     const onConnect = () => {
       setSocket(connection);
       setIsConnected(true);
@@ -134,7 +138,7 @@ export const ChatWorkspace = ({ compact = false }: ChatWorkspaceProps) => {
         setError(
           refreshError instanceof Error
             ? refreshError.message
-            : "Could not refresh your sessions."
+            : "Could not refresh your sessions.",
         );
       });
     };
@@ -149,7 +153,7 @@ export const ChatWorkspace = ({ compact = false }: ChatWorkspaceProps) => {
         setError(
           refreshError instanceof Error
             ? refreshError.message
-            : "Could not refresh your sessions."
+            : "Could not refresh your sessions.",
         );
       });
     };
@@ -170,8 +174,8 @@ export const ChatWorkspace = ({ compact = false }: ChatWorkspaceProps) => {
         current.map((contact) =>
           contact.sessionId === activity.sessionId
             ? { ...contact, lastActivity: preview }
-            : contact
-        )
+            : contact,
+        ),
       );
     };
     connection.on("connect", onConnect);
@@ -187,7 +191,7 @@ export const ChatWorkspace = ({ compact = false }: ChatWorkspaceProps) => {
 
   const requestedSessionId = searchParams.get("sessionId");
   const requestedContact = contacts.find(
-    (contact) => contact.sessionId === requestedSessionId
+    (contact) => contact.sessionId === requestedSessionId,
   );
   const selectedContact =
     requestedContact ??

@@ -23,6 +23,7 @@ import { ChatPage } from "./pages/ChatPage";
 import { SessionCallPage } from "./pages/SessionCallPage";
 import { MentorSessionStatsProvider } from "./contexts/MentorSessionStatsProvider";
 import { useMentorSessionStats } from "./contexts/useMentorSessionStats";
+import API_URL, { apiUrl } from "./config/api";
 
 export type Page =
   | "home"
@@ -75,10 +76,8 @@ type AppRoutesProps = {
 
 type StudentProfileStatus = "checking" | "incomplete" | "complete" | "error";
 
-async function fetchStudentProfileStatus(): Promise<
-  "incomplete" | "complete"
-> {
-  const response = await fetch("/api/students/me", {
+async function fetchStudentProfileStatus(): Promise<"incomplete" | "complete"> {
+  const response = await fetch(apiUrl("/api/students/me"), {
     credentials: "include",
   });
   if (response.status === 404) return "incomplete";
@@ -106,7 +105,7 @@ const AppRoutes = ({
 
   useEffect(() => {
     if (!userId) return;
-    const socket = io({ withCredentials: true });
+    const socket = io(API_URL || undefined, { withCredentials: true });
     const updateMentorSessionCount = (event: unknown) => {
       if (
         typeof event === "object" &&
@@ -140,7 +139,7 @@ const AppRoutes = ({
       setAuthError(
         error instanceof Error
           ? error.message
-          : "Could not check your student profile."
+          : "Could not check your student profile.",
       );
       return "error" as const;
     }
@@ -150,7 +149,7 @@ const AppRoutes = ({
     let isActive = true;
     const loadCurrentUser = async () => {
       try {
-        const response = await fetch("/api/users/me", {
+        const response = await fetch(apiUrl("/api/users/me"), {
           credentials: "include",
         });
         if (response.status === 401) return;
@@ -167,7 +166,7 @@ const AppRoutes = ({
               setAuthError(
                 error instanceof Error
                   ? error.message
-                  : "Could not check your student profile."
+                  : "Could not check your student profile.",
               );
             }
           }
@@ -177,7 +176,7 @@ const AppRoutes = ({
           setAuthError(
             error instanceof Error
               ? error.message
-              : "Could not restore your sign-in."
+              : "Could not restore your sign-in.",
           );
         }
       } finally {
@@ -198,7 +197,7 @@ const AppRoutes = ({
         : "student-dashboard";
 
   const handleLogout = async () => {
-    const response = await fetch("/api/users/logout", {
+    const response = await fetch(apiUrl("/api/users/logout"), {
       method: "POST",
       credentials: "include",
     });
@@ -214,7 +213,7 @@ const AppRoutes = ({
 
   const dashboardFor = (
     requiredRole: "student" | "mentor" | "admin",
-    requireStudentProfile = false
+    requireStudentProfile = false,
   ) => {
     if (isAuthLoading) {
       return (

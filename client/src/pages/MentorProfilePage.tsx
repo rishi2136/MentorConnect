@@ -16,6 +16,7 @@ import {
 } from "../utils/timezone";
 import "./MentorProfilePage.css";
 import "../components/AuthModal.css";
+import { apiUrl } from "../config/api";
 
 type MentorProfilePageProps = {
   mentor: Mentor | null;
@@ -135,7 +136,7 @@ export const MentorProfilePage = ({
         );
       }
 
-      const response = await fetch("/api/audio-meet-sessions", {
+      const response = await fetch(apiUrl("/api/audio-meet-sessions"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

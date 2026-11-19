@@ -6,6 +6,7 @@ import {
 } from "../../utils/timezone";
 import { useMentorSessionStats } from "../../contexts/useMentorSessionStats";
 import "../MentorDashboard.css";
+import { apiUrl } from "../../config/api";
 
 type ProfileRowProps = {
   left: string;
@@ -57,18 +58,32 @@ type StudentProfileData = {
   experienceSummary?: string;
 };
 
-const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const weekdays = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
 
 export const ProfileSection = () => {
   const { mentorSessionCounts, setMentorSessionCounts } =
     useMentorSessionStats();
   const [user, setUser] = useState<UserData | null>(null);
-  const [mentorProfile, setMentorProfile] = useState<MentorProfileData | null>(null);
-  const [studentProfile, setStudentProfile] = useState<StudentProfileData | null>(null);
+  const [mentorProfile, setMentorProfile] = useState<MentorProfileData | null>(
+    null,
+  );
+  const [studentProfile, setStudentProfile] =
+    useState<StudentProfileData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
   const [loadError, setLoadError] = useState("");
   const [loadAttempt, setLoadAttempt] = useState(0);
 
@@ -99,7 +114,9 @@ export const ProfileSection = () => {
 
     const fetchProfile = async () => {
       try {
-        const userRes = await fetch("/api/users/me", { credentials: "include" });
+        const userRes = await fetch(apiUrl("/api/users/me"), {
+          credentials: "include",
+        });
         if (!userRes.ok) {
           throw new Error("Could not load your account details.");
         }
@@ -108,11 +125,15 @@ export const ProfileSection = () => {
         setUser(userData);
 
         if (userData.access.includes("mentor")) {
-          const mentorRes = await fetch("/api/mentors/me", { credentials: "include" });
+          const mentorRes = await fetch(apiUrl("/api/mentors/me"), {
+            credentials: "include",
+          });
           if (!mentorRes.ok) {
             throw new Error("Could not load your mentor profile.");
           }
-          const { profile } = (await mentorRes.json()) as { profile: MentorProfileData };
+          const { profile } = (await mentorRes.json()) as {
+            profile: MentorProfileData;
+          };
           if (!isActive) return;
           setMentorProfile(profile);
           if (profile._id && typeof profile.sessionCount === "number") {
@@ -128,11 +149,15 @@ export const ProfileSection = () => {
           setAvailability(profile.availability ?? []);
           setTimezone(profile.timezone ?? DEFAULT_TIME_ZONE);
         } else if (userData.access.includes("student")) {
-          const studentRes = await fetch("/api/students/me", { credentials: "include" });
+          const studentRes = await fetch(apiUrl("/api/students/me"), {
+            credentials: "include",
+          });
           if (!studentRes.ok) {
             throw new Error("Could not load your student profile.");
           }
-          const { profile } = (await studentRes.json()) as { profile: StudentProfileData };
+          const { profile } = (await studentRes.json()) as {
+            profile: StudentProfileData;
+          };
           if (!isActive) return;
           setStudentProfile(profile);
           setCollegeName(profile.collegeName ?? "");
@@ -145,7 +170,9 @@ export const ProfileSection = () => {
       } catch (error) {
         if (isActive) {
           setLoadError(
-            error instanceof Error ? error.message : "Could not load your profile."
+            error instanceof Error
+              ? error.message
+              : "Could not load your profile.",
           );
         }
       } finally {
@@ -164,16 +191,21 @@ export const ProfileSection = () => {
     const endpoint = user?.access.includes("mentor")
       ? "/api/mentors/me"
       : "/api/students/me";
-    const response = await fetch(endpoint, { credentials: "include" });
-    if (!response.ok) throw new Error("Profile saved, but could not reload it.");
+    const response = await fetch(apiUrl(endpoint), { credentials: "include" });
+    if (!response.ok)
+      throw new Error("Profile saved, but could not reload it.");
 
     if (user?.access.includes("mentor")) {
-      const { profile } = (await response.json()) as { profile: MentorProfileData };
+      const { profile } = (await response.json()) as {
+        profile: MentorProfileData;
+      };
       setMentorProfile(profile);
       setAvailability(profile.availability ?? []);
       setTimezone(profile.timezone ?? DEFAULT_TIME_ZONE);
     } else {
-      const { profile } = (await response.json()) as { profile: StudentProfileData };
+      const { profile } = (await response.json()) as {
+        profile: StudentProfileData;
+      };
       setStudentProfile(profile);
     }
   };
@@ -192,13 +224,19 @@ export const ProfileSection = () => {
         isMentorUser &&
         availability.some((slot) => slot.endTime <= slot.startTime)
       ) {
-        throw new Error("Each availability end time must be later than its start time.");
+        throw new Error(
+          "Each availability end time must be later than its start time.",
+        );
       }
       if (isMentorUser && !isValidTimeZone(timezone.trim())) {
-        throw new Error("Enter a valid IANA timezone, such as America/Los_Angeles.");
+        throw new Error(
+          "Enter a valid IANA timezone, such as America/Los_Angeles.",
+        );
       }
       const endpoint = isMentorUser ? "/api/mentors" : "/api/students";
-      const hasExisting = isMentorUser ? Boolean(mentorProfile) : Boolean(studentProfile);
+      const hasExisting = isMentorUser
+        ? Boolean(mentorProfile)
+        : Boolean(studentProfile);
 
       const payload = isMentorUser
         ? {
@@ -226,12 +264,15 @@ export const ProfileSection = () => {
             experienceSummary: experienceSummary.trim(),
           };
 
-      const response = await fetch(hasExisting ? `${endpoint}/me` : endpoint, {
-        method: hasExisting ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(payload),
-      });
+      const response = await fetch(
+        apiUrl(hasExisting ? `${endpoint}/me` : endpoint),
+        {
+          method: hasExisting ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(payload),
+        },
+      );
 
       if (!response.ok) {
         const errData = (await response.json()) as { message?: string };
@@ -243,15 +284,22 @@ export const ProfileSection = () => {
         mentorProfile &&
         mentorProfile.isFreeSessionEnabled !== isFreeSessionEnabled
       ) {
-        const freeSessionResponse = await fetch("/api/mentors/me/free-session", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ enabled: isFreeSessionEnabled }),
-        });
+        const freeSessionResponse = await fetch(
+          apiUrl("/api/mentors/me/free-session"),
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ enabled: isFreeSessionEnabled }),
+          },
+        );
         if (!freeSessionResponse.ok) {
-          const result = (await freeSessionResponse.json()) as { message?: string };
-          throw new Error(result.message ?? "Could not update the free-session setting.");
+          const result = (await freeSessionResponse.json()) as {
+            message?: string;
+          };
+          throw new Error(
+            result.message ?? "Could not update the free-session setting.",
+          );
         }
       }
 
@@ -271,7 +319,7 @@ export const ProfileSection = () => {
   const updateAvailabilitySlot = (
     index: number,
     field: keyof AvailabilitySlot,
-    value: string
+    value: string,
   ) => {
     setAvailability((current) =>
       current.map((slot, slotIndex) =>
@@ -280,8 +328,8 @@ export const ProfileSection = () => {
               ...slot,
               [field]: field === "dayOfWeek" ? Number(value) : value,
             }
-          : slot
-      )
+          : slot,
+      ),
     );
   };
 
@@ -292,7 +340,9 @@ export const ProfileSection = () => {
   const avatarLetter = displayName[0]?.toUpperCase() || "M";
 
   if (isLoading) {
-    return <div className="chat-workspace-placeholder">Loading your profile...</div>;
+    return (
+      <div className="chat-workspace-placeholder">Loading your profile...</div>
+    );
   }
 
   return (
@@ -349,15 +399,33 @@ export const ProfileSection = () => {
 
           <div className="profile-stats-grid">
             <div className="profile-stat-item">
-              <strong>{isMentor ? mentorProfile?.yearsOfExperience ?? "—" : studentProfile?.yearStart ?? "—"}</strong>
+              <strong>
+                {isMentor
+                  ? (mentorProfile?.yearsOfExperience ?? "—")
+                  : (studentProfile?.yearStart ?? "—")}
+              </strong>
               <span>{isMentor ? "Years Exp" : "Cohort"}</span>
             </div>
             <div className="profile-stat-item">
-              <strong>{isMentor ? (mentorProfile?.isAvailable ? "Active" : "Away") : "Active"}</strong>
+              <strong>
+                {isMentor
+                  ? mentorProfile?.isAvailable
+                    ? "Active"
+                    : "Away"
+                  : "Active"}
+              </strong>
               <span>Status</span>
             </div>
             <div className="profile-stat-item">
-              <strong>{isMentor ? mentorProfile?.charges === undefined ? "—" : `$${mentorProfile.charges}` : studentProfile ? "Enrolled" : "—"}</strong>
+              <strong>
+                {isMentor
+                  ? mentorProfile?.charges === undefined
+                    ? "—"
+                    : `$${mentorProfile.charges}`
+                  : studentProfile
+                    ? "Enrolled"
+                    : "—"}
+              </strong>
               <span>{isMentor ? "Rate" : "Standing"}</span>
             </div>
           </div>
@@ -396,12 +464,24 @@ export const ProfileSection = () => {
         <main className="profile-main-panel">
           {isEditing ? (
             /* Editable Form View */
-            <form onSubmit={handleSaveProfile} className="profile-section-block">
-              <h4 style={{ marginBottom: 16 }}>Edit {isMentor ? "Mentor" : "Student"} Profile</h4>
+            <form
+              onSubmit={handleSaveProfile}
+              className="profile-section-block"
+            >
+              <h4 style={{ marginBottom: 16 }}>
+                Edit {isMentor ? "Mentor" : "Student"} Profile
+              </h4>
 
               {isMentor ? (
                 <>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr",
+                      gap: 16,
+                      marginBottom: 16,
+                    }}
+                  >
                     <label style={{ display: "block", fontSize: 13 }}>
                       Years of Experience
                       <input
@@ -409,7 +489,9 @@ export const ProfileSection = () => {
                         min={0}
                         required
                         value={yearsOfExperience}
-                        onChange={(e) => setYearsOfExperience(Number(e.target.value))}
+                        onChange={(e) =>
+                          setYearsOfExperience(Number(e.target.value))
+                        }
                         style={{ width: "100%", padding: 8, marginTop: 4 }}
                       />
                     </label>
@@ -426,7 +508,9 @@ export const ProfileSection = () => {
                     </label>
                   </div>
 
-                  <label style={{ display: "block", fontSize: 13, marginBottom: 16 }}>
+                  <label
+                    style={{ display: "block", fontSize: 13, marginBottom: 16 }}
+                  >
                     Mentor timezone (IANA)
                     <input
                       type="text"
@@ -437,9 +521,9 @@ export const ProfileSection = () => {
                       style={{ width: "100%", padding: 8, marginTop: 4 }}
                     />
                     <small>
-                      Browser detected: {getBrowserTimeZone()}. Confirm or change this
-                      timezone to match where you offer sessions; it does not verify
-                      your physical location.
+                      Browser detected: {getBrowserTimeZone()}. Confirm or
+                      change this timezone to match where you offer sessions; it
+                      does not verify your physical location.
                     </small>
                   </label>
                   <button
@@ -454,7 +538,8 @@ export const ProfileSection = () => {
                   <fieldset className="mentor-availability-editor">
                     <legend>Weekly booking availability</legend>
                     <p>
-                      Weekly availability is entered in {timezone || DEFAULT_TIME_ZONE}
+                      Weekly availability is entered in{" "}
+                      {timezone || DEFAULT_TIME_ZONE}
                       and must cover the full session duration.
                     </p>
                     {availability.map((slot, index) => (
@@ -464,11 +549,17 @@ export const ProfileSection = () => {
                           <select
                             value={slot.dayOfWeek}
                             onChange={(event) =>
-                              updateAvailabilitySlot(index, "dayOfWeek", event.target.value)
+                              updateAvailabilitySlot(
+                                index,
+                                "dayOfWeek",
+                                event.target.value,
+                              )
                             }
                           >
                             {weekdays.map((day, dayIndex) => (
-                              <option key={day} value={dayIndex}>{day}</option>
+                              <option key={day} value={dayIndex}>
+                                {day}
+                              </option>
                             ))}
                           </select>
                         </label>
@@ -478,7 +569,11 @@ export const ProfileSection = () => {
                             type="time"
                             value={slot.startTime}
                             onChange={(event) =>
-                              updateAvailabilitySlot(index, "startTime", event.target.value)
+                              updateAvailabilitySlot(
+                                index,
+                                "startTime",
+                                event.target.value,
+                              )
                             }
                             required
                           />
@@ -489,7 +584,11 @@ export const ProfileSection = () => {
                             type="time"
                             value={slot.endTime}
                             onChange={(event) =>
-                              updateAvailabilitySlot(index, "endTime", event.target.value)
+                              updateAvailabilitySlot(
+                                index,
+                                "endTime",
+                                event.target.value,
+                              )
                             }
                             required
                           />
@@ -500,7 +599,9 @@ export const ProfileSection = () => {
                           aria-label={`Remove ${weekdays[slot.dayOfWeek]} availability`}
                           onClick={() =>
                             setAvailability((current) =>
-                              current.filter((_, slotIndex) => slotIndex !== index)
+                              current.filter(
+                                (_, slotIndex) => slotIndex !== index,
+                              ),
                             )
                           }
                         >
@@ -514,7 +615,11 @@ export const ProfileSection = () => {
                       onClick={() =>
                         setAvailability((current) => [
                           ...current,
-                          { dayOfWeek: 1, startTime: "09:00", endTime: "17:00" },
+                          {
+                            dayOfWeek: 1,
+                            startTime: "09:00",
+                            endTime: "17:00",
+                          },
                         ])
                       }
                     >
@@ -556,13 +661,26 @@ export const ProfileSection = () => {
                         value={aboutMe}
                         onChange={(e) => setAboutMe(e.target.value)}
                         placeholder="Share your mentoring philosophy, background, and what students can learn from you..."
-                        style={{ width: "100%", padding: 8, marginTop: 4, fontFamily: "inherit" }}
+                        style={{
+                          width: "100%",
+                          padding: 8,
+                          marginTop: 4,
+                          fontFamily: "inherit",
+                        }}
                       />
                     </label>
                   </div>
 
                   <div style={{ display: "flex", gap: 24, marginBottom: 20 }}>
-                    <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, cursor: "pointer" }}>
+                    <label
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        fontSize: 13,
+                        cursor: "pointer",
+                      }}
+                    >
                       <input
                         type="checkbox"
                         checked={isAvailable}
@@ -570,11 +688,21 @@ export const ProfileSection = () => {
                       />
                       Available for bookings
                     </label>
-                    <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, cursor: "pointer" }}>
+                    <label
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        fontSize: 13,
+                        cursor: "pointer",
+                      }}
+                    >
                       <input
                         type="checkbox"
                         checked={isFreeSessionEnabled}
-                        onChange={(e) => setIsFreeSessionEnabled(e.target.checked)}
+                        onChange={(e) =>
+                          setIsFreeSessionEnabled(e.target.checked)
+                        }
                       />
                       Offer Free Trial Sessions
                     </label>
@@ -597,7 +725,14 @@ export const ProfileSection = () => {
                     </label>
                   </div>
 
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr",
+                      gap: 16,
+                      marginBottom: 16,
+                    }}
+                  >
                     <label style={{ display: "block", fontSize: 13 }}>
                       Course / Major
                       <input
@@ -620,7 +755,14 @@ export const ProfileSection = () => {
                     </label>
                   </div>
 
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr",
+                      gap: 16,
+                      marginBottom: 16,
+                    }}
+                  >
                     <label style={{ display: "block", fontSize: 13 }}>
                       Start Year
                       <input
@@ -651,7 +793,12 @@ export const ProfileSection = () => {
                         value={experienceSummary}
                         onChange={(e) => setExperienceSummary(e.target.value)}
                         placeholder="Describe your current learning goals, projects, and what you hope to achieve with mentors..."
-                        style={{ width: "100%", padding: 8, marginTop: 4, fontFamily: "inherit" }}
+                        style={{
+                          width: "100%",
+                          padding: 8,
+                          marginTop: 4,
+                          fontFamily: "inherit",
+                        }}
                       />
                     </label>
                   </div>
@@ -690,8 +837,18 @@ export const ProfileSection = () => {
                 <div className="profile-grid-two">
                   <ProfileRow left="Full Name" right={displayName} />
                   <ProfileRow left="Email" right={displayEmail} />
-                  <ProfileRow left="Role" right={<span style={{ textTransform: "capitalize" }}>{displayRole}</span>} />
-                  <ProfileRow left="Status" right={isLoading ? "Checking..." : "Active"} />
+                  <ProfileRow
+                    left="Role"
+                    right={
+                      <span style={{ textTransform: "capitalize" }}>
+                        {displayRole}
+                      </span>
+                    }
+                  />
+                  <ProfileRow
+                    left="Status"
+                    right={isLoading ? "Checking..." : "Active"}
+                  />
                 </div>
               </div>
 
@@ -699,28 +856,57 @@ export const ProfileSection = () => {
                 <div className="profile-section-block">
                   <h4>Mentorship Information</h4>
                   <div className="profile-grid-two">
-                    <ProfileRow left="Experience" right={`${mentorProfile?.yearsOfExperience ?? "—"}${mentorProfile?.yearsOfExperience === undefined ? "" : " years"}`} />
+                    <ProfileRow
+                      left="Experience"
+                      right={`${mentorProfile?.yearsOfExperience ?? "—"}${mentorProfile?.yearsOfExperience === undefined ? "" : " years"}`}
+                    />
                     <ProfileRow
                       left="Sessions hosted"
                       right={
                         mentorProfile?._id
-                          ? mentorSessionCounts[mentorProfile._id] ??
+                          ? (mentorSessionCounts[mentorProfile._id] ??
                             mentorProfile.sessionCount ??
-                            0
-                          : mentorProfile?.sessionCount ?? 0
+                            0)
+                          : (mentorProfile?.sessionCount ?? 0)
                       }
                     />
-                    <ProfileRow left="Session Fee" right={mentorProfile?.charges === undefined ? "Not set" : `$${mentorProfile.charges} / session`} />
-                    <ProfileRow left="Free Trial" right={mentorProfile?.isFreeSessionEnabled ? "Enabled" : "Disabled"} />
-                    <ProfileRow left="Accepting Bookings" right={mentorProfile?.isAvailable ? "Yes" : "No"} />
-                    <ProfileRow left="Expertise" right={mentorProfile?.expertise?.join(", ") || "Not set"} />
-                    <ProfileRow left="Skills" right={mentorProfile?.skills?.join(", ") || "Not set"} />
+                    <ProfileRow
+                      left="Session Fee"
+                      right={
+                        mentorProfile?.charges === undefined
+                          ? "Not set"
+                          : `$${mentorProfile.charges} / session`
+                      }
+                    />
+                    <ProfileRow
+                      left="Free Trial"
+                      right={
+                        mentorProfile?.isFreeSessionEnabled
+                          ? "Enabled"
+                          : "Disabled"
+                      }
+                    />
+                    <ProfileRow
+                      left="Accepting Bookings"
+                      right={mentorProfile?.isAvailable ? "Yes" : "No"}
+                    />
+                    <ProfileRow
+                      left="Expertise"
+                      right={mentorProfile?.expertise?.join(", ") || "Not set"}
+                    />
+                    <ProfileRow
+                      left="Skills"
+                      right={mentorProfile?.skills?.join(", ") || "Not set"}
+                    />
                     <ProfileRow
                       left={`Weekly availability (${mentorProfile?.timezone ?? DEFAULT_TIME_ZONE})`}
                       right={
                         mentorProfile?.availability?.length
                           ? mentorProfile.availability
-                              .map((slot) => `${weekdays[slot.dayOfWeek]} ${slot.startTime}–${slot.endTime}`)
+                              .map(
+                                (slot) =>
+                                  `${weekdays[slot.dayOfWeek]} ${slot.startTime}–${slot.endTime}`,
+                              )
                               .join(", ")
                           : "No booking times set"
                       }
@@ -731,9 +917,20 @@ export const ProfileSection = () => {
                 <div className="profile-section-block">
                   <h4>Academic Details</h4>
                   <div className="profile-grid-two">
-                    <ProfileRow left="College / University" right={studentProfile?.collegeName || "Not configured yet"} />
-                    <ProfileRow left="Course / Major" right={studentProfile?.course || "Not set"} />
-                    <ProfileRow left="Batch" right={studentProfile?.batch || "Not set"} />
+                    <ProfileRow
+                      left="College / University"
+                      right={
+                        studentProfile?.collegeName || "Not configured yet"
+                      }
+                    />
+                    <ProfileRow
+                      left="Course / Major"
+                      right={studentProfile?.course || "Not set"}
+                    />
+                    <ProfileRow
+                      left="Batch"
+                      right={studentProfile?.batch || "Not set"}
+                    />
                     <ProfileRow
                       left="Years"
                       right={

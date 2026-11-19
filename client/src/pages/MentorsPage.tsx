@@ -4,6 +4,7 @@ import { MentorCard } from "../components/MentorCard";
 import type { Mentor } from "../data/mentors";
 import { useMentorSessionStats } from "../contexts/useMentorSessionStats";
 import "./MentorsPage.css";
+import { apiUrl } from "../config/api";
 
 type MentorsPageProps = {
   onAuthOpen: (mode: AuthMode) => void;
@@ -67,7 +68,7 @@ export const MentorsPage = ({
         if (query.trim()) params.append("q", query.trim());
         if (specialty !== "All specialties") params.append("domain", specialty);
 
-        const response = await fetch(`/api/mentors/search?${params.toString()}`);
+        const response = await fetch(apiUrl(`/api/mentors/search?${params.toString()}`));
         if (!response.ok) throw new Error("Search request failed");
 
         const data = (await response.json()) as {

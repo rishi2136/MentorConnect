@@ -4,6 +4,7 @@ import { io } from "socket.io-client";
 import { formatSessionSchedule } from "../utils/timezone";
 import { isSessionCallWindowOpen } from "../utils/session-call";
 import "../mentor-dashboard/MentorDashboard.css";
+import API_URL, { apiUrl } from "../config/api";
 
 type SessionStatus =
   | "requested"
@@ -47,7 +48,7 @@ export const ConnectionOverviewPage = ({
   const [now, setNow] = useState(0);
 
   useEffect(() => {
-    const socket = io({ withCredentials: true });
+    const socket = io(API_URL || undefined, { withCredentials: true });
     socket.on("session:updated", () => {
       setRefreshKey((key) => key + 1);
     });
@@ -70,7 +71,7 @@ export const ConnectionOverviewPage = ({
       setIsLoading(true);
       setError("");
       try {
-        const response = await fetch("/api/audio-meet-sessions/me", {
+        const response = await fetch(apiUrl("/api/audio-meet-sessions/me"), {
           credentials: "include",
         });
         if (!response.ok) throw new Error("Could not load your sessions.");
@@ -86,7 +87,7 @@ export const ConnectionOverviewPage = ({
           setError(
             loadError instanceof Error
               ? loadError.message
-              : "Could not load your sessions."
+              : "Could not load your sessions.",
           );
         }
       } finally {
@@ -102,44 +103,40 @@ export const ConnectionOverviewPage = ({
   const featuredSessions = useMemo(
     () =>
       sessions
-        .filter(
-          (session) => {
-            const startsAt = new Date(session.scheduledAt).getTime();
-            const isOngoing =
-              session.status === "accepted" &&
-              startsAt <= now &&
-              startsAt + session.durationMinutes * 60_000 > now;
-            return (
-              isOngoing ||
-              (["requested", "accepted"].includes(session.status) &&
-                startsAt >= now)
-            );
-          }
-        )
-        .sort(
-          (first, second) => {
-            const firstStart = new Date(first.scheduledAt).getTime();
-            const secondStart = new Date(second.scheduledAt).getTime();
-            const firstOngoing =
-              first.status === "accepted" &&
-              firstStart <= now &&
-              firstStart + first.durationMinutes * 60_000 > now;
-            const secondOngoing =
-              second.status === "accepted" &&
-              secondStart <= now &&
-              secondStart + second.durationMinutes * 60_000 > now;
-            if (firstOngoing !== secondOngoing) return firstOngoing ? -1 : 1;
-            return firstStart - secondStart;
-          }
-        )
+        .filter((session) => {
+          const startsAt = new Date(session.scheduledAt).getTime();
+          const isOngoing =
+            session.status === "accepted" &&
+            startsAt <= now &&
+            startsAt + session.durationMinutes * 60_000 > now;
+          return (
+            isOngoing ||
+            (["requested", "accepted"].includes(session.status) &&
+              startsAt >= now)
+          );
+        })
+        .sort((first, second) => {
+          const firstStart = new Date(first.scheduledAt).getTime();
+          const secondStart = new Date(second.scheduledAt).getTime();
+          const firstOngoing =
+            first.status === "accepted" &&
+            firstStart <= now &&
+            firstStart + first.durationMinutes * 60_000 > now;
+          const secondOngoing =
+            second.status === "accepted" &&
+            secondStart <= now &&
+            secondStart + second.durationMinutes * 60_000 > now;
+          if (firstOngoing !== secondOngoing) return firstOngoing ? -1 : 1;
+          return firstStart - secondStart;
+        })
         .slice(0, 5),
-    [sessions, now]
+    [sessions, now],
   );
   const pendingCount = sessions.filter(
-    (session) => session.status === "requested"
+    (session) => session.status === "requested",
   ).length;
   const acceptedCount = sessions.filter(
-    (session) => session.status === "accepted"
+    (session) => session.status === "accepted",
   ).length;
 
   return (
@@ -196,7 +193,9 @@ export const ConnectionOverviewPage = ({
           <strong>{isLoading ? "—" : sessions.length}</strong>
         </article>
         <article className="dashboard-panel">
-          <span>{role === "mentor" ? "Requests to review" : "Awaiting mentor"}</span>
+          <span>
+            {role === "mentor" ? "Requests to review" : "Awaiting mentor"}
+          </span>
           <strong>{isLoading ? "—" : pendingCount}</strong>
         </article>
         <article className="dashboard-panel">
@@ -216,7 +215,9 @@ export const ConnectionOverviewPage = ({
           </button>
         </div>
         {error ? (
-          <p className="connection-overview-error" role="alert">{error}</p>
+          <p className="connection-overview-error" role="alert">
+            {error}
+          </p>
         ) : isLoading ? (
           <p className="connection-overview-empty">Loading your sessions...</p>
         ) : featuredSessions.length === 0 ? (
@@ -243,11 +244,12 @@ export const ConnectionOverviewPage = ({
                   <div>
                     <strong>{session.topic}</strong>
                     <span>
-                      {counterpart} ·{" "}
-                      {schedule} · {session.durationMinutes} min
+                      {counterpart} · {schedule} · {session.durationMinutes} min
                     </span>
                   </div>
-                  <span className={`session-badge ${isOngoing ? "live" : session.status}`}>
+                  <span
+                    className={`session-badge ${isOngoing ? "live" : session.status}`}
+                  >
                     {isOngoing ? "Ongoing" : session.status}
                   </span>
                   {session.status === "accepted" && (
@@ -260,18 +262,18 @@ export const ConnectionOverviewPage = ({
                             isSessionCallWindowOpen(
                               session.scheduledAt,
                               session.durationMinutes,
-                              now
+                              now,
                             )
                               ? "?join=1"
                               : ""
-                          }`
+                          }`,
                         )
                       }
                     >
                       {isSessionCallWindowOpen(
                         session.scheduledAt,
                         session.durationMinutes,
-                        now
+                        now,
                       )
                         ? "Start video call"
                         : "Open video session"}
@@ -280,9 +282,7 @@ export const ConnectionOverviewPage = ({
                   <button
                     className="button outline small"
                     type="button"
-                    onClick={() =>
-                      navigate(`/chat?sessionId=${session._id}`)
-                    }
+                    onClick={() => navigate(`/chat?sessionId=${session._id}`)}
                   >
                     Open conversation
                   </button>

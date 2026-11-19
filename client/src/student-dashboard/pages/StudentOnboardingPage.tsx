@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import "./StudentOnboardingPage.css";
+import { apiUrl } from "../../config/api";
 
 type StudentOnboardingPageProps = {
   onComplete: () => void;
@@ -38,7 +39,7 @@ export const StudentOnboardingPage = ({
     };
 
     try {
-      const response = await fetch("/api/students", {
+      const response = await fetch(apiUrl("/api/students"), {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -46,14 +47,16 @@ export const StudentOnboardingPage = ({
       });
       const result = (await response.json()) as { message?: string };
       if (!response.ok) {
-        throw new Error(result.message ?? "Could not save your student profile.");
+        throw new Error(
+          result.message ?? "Could not save your student profile.",
+        );
       }
       onComplete();
     } catch (submitError) {
       setError(
         submitError instanceof Error
           ? submitError.message
-          : "Could not save your student profile."
+          : "Could not save your student profile.",
       );
     } finally {
       setIsSubmitting(false);
@@ -65,7 +68,9 @@ export const StudentOnboardingPage = ({
       <section className="student-onboarding-card">
         <div className="student-onboarding-intro">
           <span className="eyebrow">A few details before you begin</span>
-          <h1>Let&apos;s make your mentorship <em>personal.</em></h1>
+          <h1>
+            Let&apos;s make your mentorship <em>personal.</em>
+          </h1>
           <p>
             Tell us about your studies and goals so mentors can make your
             sessions relevant to you. You can update these details later.
@@ -159,7 +164,9 @@ export const StudentOnboardingPage = ({
           )}
 
           <div className="student-onboarding-footer">
-            <p>Your profile is only shared to support your mentoring sessions.</p>
+            <p>
+              Your profile is only shared to support your mentoring sessions.
+            </p>
             <button className="button" type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Saving profile..." : "Save and continue"}
               <span aria-hidden="true">→</span>

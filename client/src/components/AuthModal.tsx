@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import type { AuthMode } from "../App";
 import "./AuthModal.css";
+import { apiUrl } from "../config/api";
 
 export type AuthenticatedUser = {
   id: string;
@@ -39,7 +40,7 @@ export const AuthModal = ({
     if (mode === "login") delete payload.fullName;
     try {
       const response = await fetch(
-        `/api/users/${mode === "login" ? "login" : "signup"}`,
+        apiUrl(`/api/users/${mode === "login" ? "login" : "signup"}`),
         {
           method: "POST",
           credentials: "include",
