@@ -12,7 +12,7 @@ import { errorMiddleware } from "./middleware/error.middleware.js";
 import { mongoUri } from "./config/db.js";
 
 const app = express();
-
+const isProduction = process.env.NODE_ENV === "production";
 const sessionSecret = process.env.SESSION_SECRET;
 const clientOrigin = process.env.CLIENT_ORIGIN ?? "http://localhost:5173";
 const sessionCookieName =
@@ -49,8 +49,8 @@ export const sessionMiddleware = session({
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+     secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000,
     path: "/",
   },
