@@ -7,8 +7,8 @@ type HomePageProps = {
 
 export const HomePage = ({ onExplore, onAuthOpen }: HomePageProps) => (
   <>
-    <section className="mx-auto grid min-h-[605px] max-w-[1240px] grid-cols-[1fr_0.95fr] items-center gap-[65px] px-[70px] pb-[90px] pt-[78px]">
-      <div className="max-w-[540px]">
+    <section className="home-hero mx-auto grid min-h-[605px] max-w-[1240px] grid-cols-[1fr_0.95fr] items-center gap-[65px] px-[70px] pb-[90px] pt-[78px]">
+      <div className="home-hero-copy max-w-[540px]">
         <span className="eyebrow">A better way forward</span>
         <h1
           className="mb-[22px] max-w-[520px] text-[64px] font-semibold leading-[1.02] tracking-[-2px] text-[var(--ink)]"
@@ -22,7 +22,7 @@ export const HomePage = ({ onExplore, onAuthOpen }: HomePageProps) => (
           where you want to be.
         </p>
 
-        <div className="mt-[30px] mb-[46px] flex items-center gap-[26px]">
+        <div className="home-hero-actions mt-[30px] mb-[46px] flex items-center gap-[26px]">
           <button
             className="inline-flex items-center justify-center gap-2.5 rounded-[2px] border border-[var(--green)] bg-[var(--green)] px-[22px] py-[16px] text-sm font-semibold text-white transition-transform duration-200 hover:-translate-y-0.5 hover:bg-[#315442]"
             type="button"
@@ -42,7 +42,7 @@ export const HomePage = ({ onExplore, onAuthOpen }: HomePageProps) => (
           </button>
         </div>
 
-        <div className="flex items-center gap-[13px]">
+        <div className="home-hero-social flex items-center gap-[13px]">
           <div className="flex items-center">
             <img
               className="-ml-[7px] h-[29px] w-[29px] rounded-full border-2 border-[var(--paper)] object-cover first:ml-0"
@@ -71,10 +71,10 @@ export const HomePage = ({ onExplore, onAuthOpen }: HomePageProps) => (
       </div>
 
       <div
-        className="relative w-full max-w-[500px] justify-self-end"
+        className="home-hero-art relative w-full max-w-[500px] justify-self-end"
         aria-label="A mentor and mentee talking over coffee"
       >
-        <div className="absolute -right-[15px] -top-[26px] z-0 h-[280px] w-[280px] rounded-full bg-[var(--lime)]" />
+        <div className="home-hero-art-accent absolute -right-[15px] -top-[26px] z-0 h-[280px] w-[280px] rounded-full bg-[var(--lime)]" />
         <img
           className="relative z-[1] ml-auto block aspect-[1/1.04] w-[83%] object-cover saturate-75"
           src="https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1000&q=85"
@@ -91,11 +91,11 @@ export const HomePage = ({ onExplore, onAuthOpen }: HomePageProps) => (
       </div>
     </section>
 
-    <section className="border-y border-[var(--line)] px-8 py-[27px] text-center">
+    <section className="home-proof border-y border-[var(--line)] px-8 py-[27px] text-center">
       <p className="mb-[18px] text-[11px] uppercase tracking-[0.2em] text-[var(--muted)]">
         Trusted by people building what comes next
       </p>
-      <div className="mx-auto flex max-w-[850px] items-center justify-between text-[18px] font-bold text-[var(--muted)]">
+      <div className="home-proof-brands mx-auto flex max-w-[850px] items-center justify-between text-[18px] font-bold text-[var(--muted)]">
         <strong>Vercel</strong>
         <strong>airbnb</strong>
         <strong>Notion</strong>
@@ -105,7 +105,7 @@ export const HomePage = ({ onExplore, onAuthOpen }: HomePageProps) => (
     </section>
 
     <section
-      className="mx-auto grid max-w-[1100px] grid-cols-[0.8fr_1.2fr] gap-[80px] px-8 py-[105px] pb-[125px]"
+      className="home-how mx-auto grid max-w-[1100px] grid-cols-[0.8fr_1.2fr] gap-[80px] px-8 py-[105px] pb-[125px]"
       id="how-it-works"
     >
       <div>
@@ -119,7 +119,7 @@ export const HomePage = ({ onExplore, onAuthOpen }: HomePageProps) => (
           <em className="text-[var(--green)] italic">can shift a lot.</em>
         </h2>
       </div>
-      <div className="grid grid-cols-3 gap-[30px]">
+      <div className="home-process-steps grid grid-cols-3 gap-[30px]">
         <div className="border-t border-[var(--line)] pt-[15px]">
           <span className="text-[11px] font-semibold text-[var(--green)]">
             01

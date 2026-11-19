@@ -2,7 +2,7 @@ type ThemeToggleProps = { isDark: boolean; onToggle: () => void };
 
 export const ThemeToggle = ({ isDark, onToggle }: ThemeToggleProps) => (
   <>
-    Theme Toggle
+    <span className="theme-toggle-label">Theme Toggle</span>
     <button
       className="icon-button"
       type="button"
